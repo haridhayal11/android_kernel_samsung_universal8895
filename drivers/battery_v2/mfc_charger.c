@@ -1809,7 +1809,7 @@ static int mfc_chg_get_property(struct power_supply *psy,
 		union power_supply_propval *val)
 {
 	struct mfc_charger_data *charger = power_supply_get_drvdata(psy);
-	enum power_supply_ext_property ext_psp = psp;
+	enum power_supply_ext_property ext_psp = (enum power_supply_ext_property) psp;
 //	union power_supply_propval value;
 	u8 mst_mode;
 	u8 reg_data;
@@ -2060,7 +2060,7 @@ static int mfc_chg_set_property(struct power_supply *psy,
 		const union power_supply_propval *val)
 {
 	struct mfc_charger_data *charger = power_supply_get_drvdata(psy);
-	enum power_supply_ext_property ext_psp = psp;
+	enum power_supply_ext_property ext_psp = (enum power_supply_ext_property) psp;
 	int vout, vrect, iout, freq, i = 0;
 	u8 tmp = 0;
 	/* int ret; */
