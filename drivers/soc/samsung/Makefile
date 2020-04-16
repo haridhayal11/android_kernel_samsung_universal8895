@@ -2,7 +2,6 @@
 # Exynos SoC Specific drivers
 #
 
-subdir-ccflags-y += -Wno-sizeof-pointer-div
 ccflags-y := $(KBUILD_FP_SENSOR_CFLAGS)
 
 obj-$(CONFIG_ARCH_EXYNOS)	+= exynos-powermode.o
