@@ -441,6 +441,7 @@ struct cfs_rq {
 	unsigned long propagate_avg;
 #endif
 	atomic_long_t removed_load_avg, removed_util_avg;
+	struct multi_load_cfs_rq ml_q;
 #ifndef CONFIG_64BIT
 	u64 load_last_update_time_copy;
 #endif
@@ -576,8 +577,6 @@ struct dl_rq {
 #else
 	struct dl_bw dl_bw;
 #endif
-	/* This is the "average utilization" for this runqueue */
-	s64 avg_bw;
 };
 
 #ifdef CONFIG_SMP
@@ -763,6 +762,11 @@ struct rq {
 	u64 irqload_ts;
 	u64 cum_window_demand;
 #endif /* CONFIG_SCHED_WALT */
+
+	struct part pa;
+
+	struct list_head uss_cfs_tasks;
+	struct list_head sse_cfs_tasks;
 
 #ifdef CONFIG_SCHED_EMS
 	bool ontime_migrating;
@@ -1618,9 +1622,6 @@ static inline unsigned long capacity_orig_of(int cpu)
 extern unsigned int sysctl_sched_use_walt_cpu_util;
 extern unsigned int walt_ravg_window;
 extern bool walt_disabled;
-
-unsigned long _task_util_est(struct task_struct *p);
-unsigned long task_util_est(struct task_struct *p);
 
 #endif /* CONFIG_SMP */
 

@@ -1045,6 +1045,8 @@ static int copy_mm(unsigned long clone_flags, struct task_struct *tsk)
 good_mm:
 	tsk->mm = mm;
 	tsk->active_mm = mm;
+	if (tsk->mm->mmap_base && !(tsk->mm->mmap_base >> 32))
+		tsk->sse = 1;
 	return 0;
 
 fail_nomem:
@@ -1414,6 +1416,7 @@ static struct task_struct *copy_process(unsigned long clone_flags,
 
 	init_sigpending(&p->pending);
 
+	p->sse = 0;
 	p->utime = p->stime = p->gtime = 0;
 	p->utimescaled = p->stimescaled = 0;
 	prev_cputime_init(&p->prev_cputime);
