@@ -22,6 +22,7 @@ unsigned long task_util(struct task_struct *p)
 		return p->se.avg.util_avg;
 }
 
+extern int capacity_margin;
 static int select_proper_cpu(struct task_struct *p, int prev_cpu)
 {
 	int cpu;
@@ -47,7 +48,7 @@ static int select_proper_cpu(struct task_struct *p, int prev_cpu)
 			new_util = max(new_util, ml_boosted_task_util(p));
 
 			/* skip over-capacity cpu */
-			if (new_util > capacity_orig)
+			if (new_util * capacity_margin > capacity_orig * SCHED_CAPACITY_SCALE)
 				continue;
 
 			/*
