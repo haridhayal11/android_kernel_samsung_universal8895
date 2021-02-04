@@ -7356,9 +7356,7 @@ wl_cfgvendor_send_hang_event(struct net_device *dev, u16 reason, char *string, i
 	}
 
 #ifdef DHD_LOG_DUMP
-	if (dhd->debug_dump_time_hang_str) {
-		dhd_logdump_cookie_save(dhd, dhd->debug_dump_time_hang_str, "HANG");
-	}
+	dhd_logdump_cookie_save(dhd, dhd->debug_dump_time_hang_str, "HANG");
 #endif /* DHD_LOG_DUMP */
 
 	if (dhd) {
