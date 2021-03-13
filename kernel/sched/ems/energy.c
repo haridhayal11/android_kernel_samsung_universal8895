@@ -200,8 +200,11 @@ unsigned int calculate_energy(struct task_struct *p, int target_cpu)
 
 static int find_min_util_cpu(const struct cpumask *mask, struct task_struct *p)
 {
-	unsigned long min_util = ULONG_MAX;
-	int min_util_cpu = -1;
+	unsigned long min_active_util = ULONG_MAX;
+	unsigned long min_idle_util = ULONG_MAX;
+	int min_idle_cstate = INT_MAX;
+	int min_active_util_cpu = -1;
+	int min_idle_util_cpu = -1;
 	int cpu;
 
 	/* Find energy efficient cpu in each coregroup. */
@@ -209,7 +212,26 @@ static int find_min_util_cpu(const struct cpumask *mask, struct task_struct *p)
 		unsigned long capacity_orig = capacity_orig_of(cpu);
 		unsigned long util = ml_task_attached_cpu_util(cpu, p);
 
-		/* Skip over-capacity cpu */
+		if (idle_cpu(cpu)) {
+			int idle_idx = idle_get_state_idx(cpu_rq(cpu));
+
+			/* find shallowest idle state cpu */
+			if (idle_idx > min_idle_cstate)
+				continue;
+
+			/* if same cstate, select lower util */
+			if (idle_idx == min_idle_cstate &&
+			    util >= min_idle_util)
+				continue;
+
+			/* Keep track of best idle CPU */
+			min_idle_util = util;
+			min_idle_cstate = idle_idx;
+			min_idle_util_cpu = cpu;
+			continue;
+		}
+
+		/* Skip over-capacity active cpu */
 		if (util >= capacity_orig)
 			continue;
 
@@ -218,13 +240,16 @@ static int find_min_util_cpu(const struct cpumask *mask, struct task_struct *p)
 		 * Choosing a min util cpu is most likely to handle
 		 * wake-up task without increasing the frequecncy.
 		 */
-		if (util < min_util) {
-			min_util = util;
-			min_util_cpu = cpu;
+		if (util < min_active_util) {
+			min_active_util = util;
+			min_active_util_cpu = cpu;
 		}
 	}
 
-	return min_util_cpu;
+	if (!cpu_selected(min_active_util_cpu))
+		return min_idle_util_cpu;
+
+	return min_active_util_cpu;
 }
 
 struct eco_env {

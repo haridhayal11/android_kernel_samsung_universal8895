@@ -26,7 +26,10 @@ extern int capacity_margin;
 static int select_proper_cpu(struct task_struct *p, int prev_cpu)
 {
 	int cpu;
-	unsigned long best_min_util = ULONG_MAX;
+	unsigned long best_active_util = ULONG_MAX;
+	unsigned long best_idle_util = ULONG_MAX;
+	int best_idle_cstate = INT_MAX;
+	int best_idle_cpu = -1;
 	int best_cpu = -1;
 
 	for_each_cpu(cpu, cpu_active_mask) {
@@ -47,7 +50,26 @@ static int select_proper_cpu(struct task_struct *p, int prev_cpu)
 			new_util = ml_task_attached_cpu_util(i, p);
 			new_util = max(new_util, ml_boosted_task_util(p));
 
-			/* skip over-capacity cpu */
+			if (idle_cpu(cpu)) {
+				int idle_idx = idle_get_state_idx(cpu_rq(cpu));
+
+				/* find shallowest idle state cpu */
+				if (idle_idx > best_idle_cstate)
+					continue;
+
+				/* if same cstate, select lower util */
+				if (idle_idx == best_idle_cstate &&
+				    new_util >= best_idle_util)
+					continue;
+
+				/* Keep track of best idle CPU */
+				best_idle_util = new_util;
+				best_idle_cstate = idle_idx;
+				best_idle_cpu = cpu;
+				continue;
+			}
+
+			/* skip over-capacity active cpu */
 			if (new_util * capacity_margin > capacity_orig * SCHED_CAPACITY_SCALE)
 				continue;
 
@@ -61,10 +83,10 @@ static int select_proper_cpu(struct task_struct *p, int prev_cpu)
 			 * with smallest cpapacity and the least utilization among
 			 * cpu that fits the task.
 			 */
-			if (best_min_util < new_util)
+			if (best_active_util < new_util)
 				continue;
 
-			best_min_util = new_util;
+			best_active_util = new_util;
 			best_cpu = i;
 		}
 
@@ -76,7 +98,12 @@ static int select_proper_cpu(struct task_struct *p, int prev_cpu)
 			break;
 	}
 
-	trace_ems_select_proper_cpu(p, best_cpu, best_min_util);
+	if (!cpu_selected(best_cpu)) {
+		best_cpu = best_idle_cpu;
+		trace_ems_select_proper_cpu(p, best_cpu, best_idle_util);
+	} else {
+		trace_ems_select_proper_cpu(p, best_cpu, best_active_util);
+	}
 
 	/*
 	 * if it fails to find the vest cpu, choosing any cpu is meaningless.
