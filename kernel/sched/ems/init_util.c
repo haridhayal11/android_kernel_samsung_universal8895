@@ -17,7 +17,7 @@ enum {
 	TYPE_MAX_NUM,
 };
 
-static unsigned long init_util_type = TYPE_BASE_CFS_RQ_UTIL;
+static unsigned long init_util_type = TYPE_BASE_INHERIT_PARENT_UTIL;
 static unsigned long init_util_ratio = 25;			/* 25% */
 
 static void base_cfs_rq_util(struct sched_entity *se)
