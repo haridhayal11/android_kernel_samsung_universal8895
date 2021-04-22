@@ -22,6 +22,23 @@ unsigned long task_util(struct task_struct *p)
 		return p->se.avg.util_avg;
 }
 
+extern int wake_cap(struct task_struct *p, int cpu, int prev_cpu);
+bool is_cpu_preemptible(struct task_struct *p, int prev_cpu, int cpu, int sync)
+{
+	struct rq *rq = cpu_rq(cpu);
+	struct task_struct *curr = READ_ONCE(rq->curr);
+
+	if (sync && (rq->nr_running != 1 || wake_cap(p, cpu, prev_cpu)))
+		return false;
+
+#ifdef CONFIG_SCHED_TUNE
+	if (curr && schedtune_prefer_perf(curr) > 0)
+		return false;
+#endif
+
+	return true;
+}
+
 extern int capacity_margin;
 static int select_proper_cpu(struct task_struct *p, int prev_cpu)
 {
@@ -29,6 +46,7 @@ static int select_proper_cpu(struct task_struct *p, int prev_cpu)
 	unsigned long best_active_util = ULONG_MAX;
 	unsigned long best_idle_util = ULONG_MAX;
 	int best_idle_cstate = INT_MAX;
+	int best_active_cpu = -1;
 	int best_idle_cpu = -1;
 	int best_cpu = -1;
 
@@ -87,15 +105,18 @@ static int select_proper_cpu(struct task_struct *p, int prev_cpu)
 				continue;
 
 			best_active_util = new_util;
-			best_cpu = i;
+			best_active_cpu = i;
 		}
 
 		/*
 		 * if it fails to find the best cpu in this coregroup, visit next
 		 * coregroup.
 		 */
-		if (cpu_selected(best_cpu))
+		if (cpu_selected(best_active_cpu) &&
+		    is_cpu_preemptible(p, -1, best_active_cpu, 0)) {
+			best_cpu = best_active_cpu;
 			break;
+		}
 	}
 
 	if (!cpu_selected(best_cpu)) {
