@@ -7585,23 +7585,23 @@ static void ufs_sec_send_errinfo (void *data) {
 	if (&(hba->SEC_err_info))
 	{
 		err_info = &(hba->SEC_err_info);
-		sprintf(buf, "U%dH%dL%dX%dQ%dR%dW%dF%d", 
-				(err_info->UTP_count.UTP_err > 9) 				/* UTP Error */
-				? 9 : err_info->UTP_count.UTP_err,
-				(err_info->op_count.HW_RESET_count > 9) 		/* HW Reset */
-				? 9 : err_info->op_count.HW_RESET_count,
-				(err_info->op_count.link_startup_count > 9) 	/* Link Startup Fail */
-				? 9 : err_info->op_count.link_startup_count,
-				(err_info->Fatal_err_count.LLE > 9) 			/* Link Lost */
-				? 9 : err_info->Fatal_err_count.LLE,
-				(err_info->UTP_count.UTMR_query_task_count > 9)	/* Query task */
-				? 9 : err_info->UTP_count.UTMR_query_task_count,
-				(err_info->UTP_count.UTR_read_err > 9) 			/* UTRR */
-				? 9 : err_info->UTP_count.UTR_read_err,
-				(err_info->UTP_count.UTR_write_err > 9 ) 		/* UTRW */
-				? 9 : err_info->UTP_count.UTR_write_err,
-				(err_info->Fatal_err_count.DFE > 9 				/* Device Fatal Error */
-				? 9 : err_info->Fatal_err_count.DFE));
+		//sprintf(buf, "U%dH%dL%dX%dQ%dR%dW%dF%d", 
+		//		(err_info->UTP_count.UTP_err > 9) 				/* UTP Error */
+		//		? 9 : err_info->UTP_count.UTP_err,
+		//		(err_info->op_count.HW_RESET_count > 9) 		/* HW Reset */
+		//		? 9 : err_info->op_count.HW_RESET_count,
+		//		(err_info->op_count.link_startup_count > 9) 	/* Link Startup Fail */
+		//		? 9 : err_info->op_count.link_startup_count,
+		//		(err_info->Fatal_err_count.LLE > 9) 			/* Link Lost */
+		//		? 9 : err_info->Fatal_err_count.LLE,
+		//		(err_info->UTP_count.UTMR_query_task_count > 9)	/* Query task */
+		//		? 9 : err_info->UTP_count.UTMR_query_task_count,
+		//		(err_info->UTP_count.UTR_read_err > 9) 			/* UTRR */
+		//		? 9 : err_info->UTP_count.UTR_read_err,
+		//		(err_info->UTP_count.UTR_write_err > 9 ) 		/* UTRW */
+		//		? 9 : err_info->UTP_count.UTR_write_err,
+		//		(err_info->Fatal_err_count.DFE > 9 				/* Device Fatal Error */
+		//		? 9 : err_info->Fatal_err_count.DFE));
 		printk(KERN_ERR "%s: Send UFS information to AP : %s\n", __func__, buf);
 		sec_debug_set_extra_info_ufs_error(buf);
 	}
